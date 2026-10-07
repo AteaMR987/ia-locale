@@ -1,0 +1,804 @@
+<title>Guide de l'IA locale</title>
+<meta name="description" content="Guide complet pour utiliser Hermes Agent, Morphic et OpenCode avec un modèle Qwen 3.6 local sur Windows 11.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Mise en page : sommaire fixe à gauche (bureau), contenu en colonne de lecture ; une seule colonne sur téléphone.
+   Couleurs : papier froid, encre bleu-gris, cuivre (pistes de circuit) pour l'accent ; vert = reste sur le PC, ambre = sort du PC. */
+:root {
+  --bg: #f3f5f7; --surface: #ffffff; --ink: #17212b; --muted: #536170; --line: #d9e0e7;
+  --accent: #b0512a; --accent-soft: #f6e7df; --ok: #1d7a53; --ok-soft: #e3f3eb;
+  --warn: #9a6200; --warn-soft: #fbf0d9; --danger: #b42318; --danger-soft: #fbe5e3;
+  --code-bg: #edf1f5; --code-ink: #1f2d3a;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1419; --surface: #161e25; --ink: #e5eaef; --muted: #9babba; --line: #27323c;
+  --accent: #e3895c; --accent-soft: #3a261c; --ok: #4fc38c; --ok-soft: #15301f;
+  --warn: #e2b04a; --warn-soft: #33290f; --danger: #f2786d; --danger-soft: #3a1b18;
+  --code-bg: #1c262f; --code-ink: #dbe4ec; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1419; --surface: #161e25; --ink: #e5eaef; --muted: #9babba; --line: #27323c;
+  --accent: #e3895c; --accent-soft: #3a261c; --ok: #4fc38c; --ok-soft: #15301f;
+  --warn: #e2b04a; --warn-soft: #33290f; --danger: #f2786d; --danger-soft: #3a1b18;
+  --code-bg: #1c262f; --code-ink: #dbe4ec; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.65 var(--f-body); }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 80px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; }
+header.hero { grid-column: 1 / -1; display: grid; gap: 18px; padding-block: 12px 8px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 600 13px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 700 clamp(34px, 5vw, 54px)/1.05 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 19px; color: var(--muted); max-width: 68ch; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 4px 18px; }
+.chip { font: 600 13px/1 var(--f-mono); padding: 7px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+.chip b { color: var(--accent); font-weight: 600; }
+nav.sommaire { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); align-self: start; max-height: calc(100vh - 32px); overflow: auto; display: grid; gap: 14px; }
+nav.sommaire label { font: 600 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+#filtre { width: 100%; font: 15px var(--f-body); padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+#filtre:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#compte { font-size: 13px; color: var(--muted); min-height: 1em; }
+nav.sommaire ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: ch; }
+nav.sommaire li a { display: grid; grid-template-columns: 26px 1fr; gap: 4px; text-decoration: none; color: var(--muted); font-size: 15px; padding: 5px 8px; border-radius: 6px; line-height: 1.3; }
+nav.sommaire li a span { font: 600 12px/1.6 var(--f-mono); color: var(--accent); }
+nav.sommaire li a:hover, nav.sommaire li a.actif { background: var(--surface); color: var(--ink); }
+main { min-width: 0; display: grid; gap: 56px; }
+section.chapitre { display: grid; gap: 16px; scroll-margin-top: 20px; }
+section.chapitre > header { display: grid; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.num { font: 600 13px/1 var(--f-mono); color: var(--accent); letter-spacing: .06em; }
+h2 { font: 700 clamp(26px, 3.2vw, 34px)/1.15 var(--f-display); margin: 0; text-wrap: balance; }
+h3 { font: 700 21px/1.25 var(--f-display); margin: 14px 0 0; text-wrap: balance; }
+h4 { font: 600 17px/1.3 var(--f-body); margin: 6px 0 0; color: var(--accent); }
+p, ul, ol { margin: 0; max-width: 72ch; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+code { font: 0.86em var(--f-mono); background: var(--code-bg); color: var(--code-ink); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
+kbd { font: 600 0.82em var(--f-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; background: var(--surface); }
+.cmd { position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; max-width: 100%; }
+.cmd pre { margin: 0; padding: 14px 92px 14px 16px; overflow-x: auto; font: 14px/1.55 var(--f-mono); color: var(--code-ink); white-space: pre; }
+.cmd pre code { background: none; padding: 0; font-size: inherit; }
+.cmd .copier { position: absolute; top: 8px; right: 8px; font: 600 12px var(--f-mono); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.cmd .copier:hover { border-color: var(--accent); color: var(--accent); }
+.attendu { font-size: 15px; color: var(--muted); }
+.attendu b { color: var(--ok); }
+.tableau { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+th { font: 600 13px/1.3 var(--f-mono); letter-spacing: .03em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { white-space: nowrap; }
+td.libre { white-space: normal; }
+.num-tab { font-variant-numeric: tabular-nums; }
+.encadre { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; background: var(--surface); max-width: 78ch; }
+.encadre .titre { font: 600 13px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
+.encadre.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 35%, transparent); } .encadre.ok .titre { color: var(--ok); }
+.encadre.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); } .encadre.warn .titre { color: var(--warn); }
+.encadre.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); } .encadre.danger .titre { color: var(--danger); }
+.encadre.info { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent); } .encadre.info .titre { color: var(--accent); }
+.etapes { list-style: none; padding: 0; counter-reset: e; display: grid; gap: 12px; }
+.etapes > li { counter-increment: e; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
+.etapes > li::before { content: counter(e); font: 700 15px/34px var(--f-display); text-align: center; width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.etapes > li > div { display: grid; gap: 8px; min-width: 0; }
+.cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.carte { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.carte h3 { margin: 0; font-size: 20px; }
+.carte .role { font: 600 12px/1.2 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.carte p { font-size: 15.5px; }
+.schema { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1.1fr) 40px minmax(0, 1fr); align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.schema .col { display: grid; gap: 8px; }
+.schema .bloc { border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; background: var(--bg); font-size: 14.5px; line-height: 1.35; }
+.schema .bloc b { display: block; font: 600 15px var(--f-display); }
+.schema .bloc.local { border-color: color-mix(in srgb, var(--ok) 50%, transparent); background: var(--ok-soft); }
+.schema .bloc.sortie { border-color: color-mix(in srgb, var(--warn) 50%, transparent); background: var(--warn-soft); }
+.schema .fleche { text-align: center; font: 600 20px var(--f-mono); color: var(--muted); }
+.schema .legende { grid-column: 1 / -1; font-size: 13.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 14px; padding-top: 6px; }
+.pastille { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.jauge { display: grid; gap: 10px; }
+.jauge .ligne { display: grid; grid-template-columns: 170px minmax(0, 1fr) 110px; gap: 12px; align-items: center; font-size: 15px; }
+.jauge .barre { height: 12px; border-radius: 6px; background: var(--code-bg); overflow: hidden; }
+.jauge .barre i { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
+.jauge .val { font: 600 13px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+details.sommaire-mobile { display: none; }
+footer.pied { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 14px; display: grid; gap: 6px; }
+.masque { display: none !important; }
+@media (max-width: 900px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-inline: 16px; }
+  nav.sommaire { position: static; max-height: none; }
+  nav.sommaire ol { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .schema { grid-template-columns: minmax(0, 1fr); }
+  .schema .fleche { transform: rotate(90deg); }
+  .jauge .ligne { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  td:first-child { white-space: normal; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="page">
+<header class="hero">
+  <div class="eyebrow">Guide complet · version du 7 octobre 2026</div>
+  <h1>Votre IA locale, mode d'emploi</h1>
+  <p class="lede">Trois agents d'intelligence artificielle tournent sur votre PC : Hermes pour réfléchir et apprendre, Morphic pour chercher sur le web, OpenCode pour coder. Ils partagent un seul cerveau, le modèle Qwen 3.6, qui ne quitte jamais votre machine. Ce guide explique tout : démarrer, bien s'en servir, protéger vos données, entretenir, réparer.</p>
+  <div class="chips">
+    <span class="chip">Coût : <b>0 €</b></span>
+    <span class="chip">Modèle : <b>qwen3.6-35b-64k</b></span>
+    <span class="chip">Ollama <b>0.40.0</b></span>
+    <span class="chip">Hermes <b>0.21.5</b></span>
+    <span class="chip">OpenCode <b>1.18</b></span>
+    <span class="chip">Recherche : <b>API Brave</b></span>
+    <span class="chip">Fuite vers une IA en ligne : <b>aucune</b></span>
+  </div>
+</header>
+
+<nav class="sommaire" aria-label="Sommaire">
+  <label for="filtre">Rechercher dans le guide</label>
+  <input id="filtre" type="search" placeholder="ex. mémoire, Brave, lent…" autocomplete="off">
+  <div id="compte" aria-live="polite"></div>
+  <label>Sommaire</label>
+  <ol>
+    <li><a href="#demarrage-rapide"><span>01</span>Démarrage rapide</a></li>
+    <li><a href="#comprendre"><span>02</span>Comprendre en 10 notions</a></li>
+    <li><a href="#architecture"><span>03</span>Comment tout s'assemble</a></li>
+    <li><a href="#allumer"><span>04</span>Allumer et éteindre</a></li>
+    <li><a href="#hermes"><span>05</span>Hermes Agent</a></li>
+    <li><a href="#morphic"><span>06</span>Morphic</a></li>
+    <li><a href="#opencode"><span>07</span>OpenCode</a></li>
+    <li><a href="#ollama"><span>08</span>Ollama et les modèles</a></li>
+    <li><a href="#prompts"><span>09</span>Bien parler à une IA locale</a></li>
+    <li><a href="#materiel"><span>10</span>Performances et matériel</a></li>
+    <li><a href="#confidentialite"><span>11</span>Confidentialité et sécurité</a></li>
+    <li><a href="#couts"><span>12</span>Coûts</a></li>
+    <li><a href="#mises-a-jour"><span>13</span>Mises à jour</a></li>
+    <li><a href="#sauvegardes"><span>14</span>Données et sauvegardes</a></li>
+    <li><a href="#depannage"><span>15</span>Dépannage</a></li>
+    <li><a href="#limites"><span>16</span>Limites et bon usage</a></li>
+    <li><a href="#aide-memoire"><span>17</span>Aide-mémoire</a></li>
+    <li><a href="#glossaire"><span>18</span>Glossaire</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- 01 -->
+<section class="chapitre" id="demarrage-rapide">
+  <header><div class="num">01</div><h2>Démarrage rapide</h2></header>
+  <p>Si vous ne lisez qu'un chapitre, lisez celui-ci. Toutes les commandes se tapent dans <b>PowerShell</b> : touche Windows, tapez « PowerShell », Entrée.</p>
+  <ol class="etapes">
+    <li><div><p><b>Tout allumer</b> : Ollama, Docker, Morphic et le moteur de recherche. Comptez 1 à 3 minutes.</p>
+      <div class="cmd"><pre><code>&amp; "C:\Users\ateat\source\repos\ia-locale\scripts\demarrer-ia-locale.ps1"</code></pre></div>
+      <p class="attendu">Résultat attendu : quatre lignes <b>OK</b> puis « Prêt ».</p></div></li>
+    <li><div><p><b>Choisir l'outil selon le besoin.</b></p>
+      <div class="cartes">
+        <div class="carte"><div class="role">Réfléchir, organiser, apprendre</div><h3>Hermes Agent</h3><p>Tapez <code>hermes</code>. Il se souvient de vous, cherche sur le web, lit des pages, délègue à des sous-agents.</p></div>
+        <div class="carte"><div class="role">Chercher une réponse sourcée</div><h3>Morphic</h3><p>Ouvrez <a href="http://localhost:3000">http://localhost:3000</a>. Comme Perplexity : question, recherche Brave, réponse avec sources.</p></div>
+        <div class="carte"><div class="role">Écrire et comprendre du code</div><h3>OpenCode</h3><p>Ouvrez PowerShell dans un dossier de code, tapez <code>opencode</code>. Il lit, explique et modifie vos fichiers avec votre accord.</p></div>
+      </div></div></li>
+    <li><div><p><b>Tout éteindre</b> quand vous avez fini, pour rendre la mémoire au PC. Vos données sont conservées.</p>
+      <div class="cmd"><pre><code>&amp; "C:\Users\ateat\source\repos\ia-locale\scripts\arreter-ia-locale.ps1"</code></pre></div></li>
+  </ol>
+  <div class="encadre info"><div class="titre">Bon à savoir</div><p>Une IA locale est plus lente qu'une IA en ligne : comptez 20 secondes à 3 minutes par réponse, selon l'outil. C'est le prix de la confidentialité et de la gratuité. Laissez-la travailler, la fenêtre n'est pas bloquée.</p></div>
+</section>
+
+<!-- 02 -->
+<section class="chapitre" id="comprendre">
+  <header><div class="num">02</div><h2>Comprendre en 10 notions</h2></header>
+  <p>Pas besoin d'être informaticien. Ces dix idées expliquent presque tout ce que vous verrez à l'écran.</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Notion</th><th>Ce que c'est</th><th>Chez vous</th></tr></thead>
+    <tbody>
+      <tr><td>Modèle de langage</td><td class="libre">Un très gros fichier de nombres qui a appris à prédire la suite d'un texte. C'est le « cerveau » des trois outils.</td><td class="libre">Qwen 3.6 35B, 21 Go sur le disque</td></tr>
+      <tr><td>Paramètres</td><td class="libre">Les nombres du modèle. Plus il y en a, plus le modèle est capable, et plus il est lourd.</td><td class="libre">35,5 milliards</td></tr>
+      <tr><td>MoE (mélange d'experts)</td><td class="libre">Le modèle est découpé en « experts » ; à chaque mot, seuls quelques-uns travaillent. Résultat : la qualité d'un gros modèle à la vitesse d'un petit.</td><td class="libre">3 milliards actifs par mot sur 35</td></tr>
+      <tr><td>Jeton (token)</td><td class="libre">L'unité de texte du modèle : un morceau de mot. En français, 100 jetons ≈ 70 mots.</td><td class="libre">12 à 20 jetons écrits par seconde</td></tr>
+      <tr><td>Contexte</td><td class="libre">La mémoire de travail d'une conversation : tout ce que le modèle « voit » à un instant. Au-delà, il oublie le début.</td><td class="libre">64 000 jetons ≈ 45 000 mots ≈ 90 pages</td></tr>
+      <tr><td>Quantification</td><td class="libre">Compression du modèle (nombres moins précis) pour qu'il tienne en mémoire, avec une perte de qualité minime.</td><td class="libre">Q4_K_M (environ 4,5 bits par nombre)</td></tr>
+      <tr><td>Mémoire graphique / vive</td><td class="libre">La carte graphique calcule très vite mais a peu de mémoire ; le reste du modèle va en mémoire vive, traitée par le processeur.</td><td class="libre">17 % carte graphique (8 Go), 83 % processeur (32 Go)</td></tr>
+      <tr><td>Agent</td><td class="libre">Une IA qui ne fait pas que répondre : elle utilise des <b>outils</b> (chercher, lire un fichier, ouvrir une page) en plusieurs étapes jusqu'à finir la tâche.</td><td class="libre">Hermes et OpenCode sont des agents</td></tr>
+      <tr><td>Sous-agent</td><td class="libre">Un agent lancé par un autre agent pour une sous-tâche, avec son propre contexte, puis qui rend un résumé.</td><td class="libre">Hermes : au plus 2 en même temps</td></tr>
+      <tr><td>Réflexion (thinking)</td><td class="libre">Le modèle écrit d'abord un raisonnement interne avant de répondre. Plus lent, mais plus juste.</td><td class="libre">Visible dans Morphic (« Thoughts »)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 03 -->
+<section class="chapitre" id="architecture">
+  <header><div class="num">03</div><h2>Comment tout s'assemble</h2></header>
+  <p>Les trois outils parlent au même serveur Ollama, qui fait tourner le modèle. Pour le web, ils passent par SearXNG, un petit moteur de recherche installé dans Docker, qui interroge l'API officielle de Brave. Tout communique par l'adresse <code>127.0.0.1</code>, qui signifie « ce PC-ci » : rien n'est ouvert sur votre Wi-Fi.</p>
+  <div class="schema" role="img" aria-label="Schéma : Hermes, Morphic et OpenCode utilisent Ollama sur le PC ; seule la recherche passe par SearXNG vers l'API Brave.">
+    <div class="col">
+      <div class="bloc local"><b>Hermes Agent</b>terminal, <code>hermes</code></div>
+      <div class="bloc local"><b>Morphic</b>navigateur, port 3000</div>
+      <div class="bloc local"><b>OpenCode</b>terminal, <code>opencode</code></div>
+    </div>
+    <div class="fleche" aria-hidden="true">→</div>
+    <div class="col">
+      <div class="bloc local"><b>Ollama</b>port 11434 · modèle qwen3.6-35b-64k · carte graphique + processeur</div>
+      <div class="bloc local"><b>SearXNG</b>port 8080, dans Docker · moteur « braveapi » seul</div>
+      <div class="bloc local"><b>PostgreSQL + Redis</b>historique de Morphic, dans Docker</div>
+    </div>
+    <div class="fleche" aria-hidden="true">→</div>
+    <div class="col">
+      <div class="bloc sortie"><b>API Brave</b>reçoit le texte de vos recherches</div>
+      <div class="bloc sortie"><b>Sites web</b>visités pour lire une page</div>
+    </div>
+    <div class="legende"><span><i class="pastille" style="background:var(--ok)"></i>reste sur le PC</span><span><i class="pastille" style="background:var(--warn)"></i>sort du PC</span></div>
+  </div>
+  <h3>Les ports utilisés</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Port</th><th>Service</th><th>Accessible depuis</th></tr></thead>
+    <tbody class="num-tab">
+      <tr><td>11434</td><td class="libre">Ollama (le modèle)</td><td class="libre">ce PC seulement</td></tr>
+      <tr><td>3000</td><td class="libre">Morphic (interface web)</td><td class="libre">ce PC seulement</td></tr>
+      <tr><td>8080</td><td class="libre">SearXNG (recherche)</td><td class="libre">ce PC seulement</td></tr>
+      <tr><td>5433</td><td class="libre">PostgreSQL de Morphic</td><td class="libre">ce PC seulement</td></tr>
+      <tr><td>6379</td><td class="libre">Redis de Morphic (cache)</td><td class="libre">ce PC seulement</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 04 -->
+<section class="chapitre" id="allumer">
+  <header><div class="num">04</div><h2>Allumer et éteindre</h2></header>
+  <h3>Ce qui démarre tout seul avec Windows</h3>
+  <p>Seul <b>Ollama</b> se lance au démarrage de Windows, comme avant ce projet. Au repos, sans question en cours, il consomme très peu. Docker, Morphic, Hermes et OpenCode ne démarrent <b>jamais</b> seuls.</p>
+  <p>Pour empêcher aussi Ollama de démarrer : <kbd>Ctrl</kbd>+<kbd>Maj</kbd>+<kbd>Échap</kbd> (Gestionnaire des tâches) → <b>Applications de démarrage</b> → Ollama → <b>Désactiver</b>. Le script de démarrage le relancera quand il le faut.</p>
+  <h3>Le script de démarrage, étape par étape</h3>
+  <ol>
+    <li>Lance Ollama <b>par l'Explorateur Windows</b>, comme un clic dans le menu Démarrer. C'est important : voir l'erreur 448 au chapitre Dépannage.</li>
+    <li>Ouvre Docker Desktop et attend qu'il réponde (jusqu'à 4 minutes au premier lancement).</li>
+    <li>Démarre les quatre conteneurs de Morphic (application, PostgreSQL, Redis, SearXNG).</li>
+    <li>Vérifie que SearXNG et Morphic répondent, puis affiche « Prêt ».</li>
+  </ol>
+  <h3>Vérifier ce qui tourne</h3>
+  <div class="cmd"><pre><code>ollama ps
+docker ps --format "{{.Names}} : {{.Status}}"
+hermes status</code></pre></div>
+  <p class="attendu"><code>ollama ps</code> liste le modèle chargé (vide s'il dort) ; <code>docker ps</code> doit montrer <b>4 conteneurs « Up »</b> quand Morphic est allumé.</p>
+  <h3>Faut-il tout allumer à chaque fois ?</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Vous voulez utiliser</th><th>Il faut</th></tr></thead>
+    <tbody>
+      <tr><td>OpenCode</td><td class="libre">Ollama seulement (déjà lancé au démarrage de Windows)</td></tr>
+      <tr><td>Hermes sans recherche web</td><td class="libre">Ollama seulement</td></tr>
+      <tr><td>Hermes avec recherche web</td><td class="libre">Ollama + Docker (pour SearXNG) : le script de démarrage</td></tr>
+      <tr><td>Morphic</td><td class="libre">Ollama + Docker : le script de démarrage</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 05 -->
+<section class="chapitre" id="hermes">
+  <header><div class="num">05</div><h2>Hermes Agent : l'agent qui apprend</h2></header>
+  <p>Hermes est un agent généraliste. Il discute, cherche sur le web, lit des pages avec son propre navigateur, lit et écrit des fichiers, garde une mémoire de vous, crée ses propres « compétences » avec l'expérience et confie des sous-tâches à des sous-agents.</p>
+
+  <h3>Lancer et quitter</h3>
+  <div class="cmd"><pre><code>hermes</code></pre></div>
+  <ul>
+    <li>Tapez votre message puis <kbd>Entrée</kbd>. La première réponse prend souvent <b>1 à 3 minutes</b> : Hermes envoie de longues consignes au modèle.</li>
+    <li>Pour interrompre une réponse trop longue : <kbd>Ctrl</kbd>+<kbd>C</kbd>.</li>
+    <li>Pour quitter : <code>/quit</code> (ou <code>/exit</code>).</li>
+    <li>Palette de toutes les commandes : <kbd>Ctrl</kbd>+<kbd>P</kbd>, ou <code>/help</code>.</li>
+  </ul>
+  <h4>Poser une seule question sans ouvrir la conversation</h4>
+  <div class="cmd"><pre><code>hermes chat -q "Résume en 5 points les causes d'une entorse de cheville"</code></pre></div>
+
+  <h3>Les commandes « / » les plus utiles</h3>
+  <p>Elles se tapent dans la conversation d'Hermes, pas dans PowerShell.</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+    <tbody>
+      <tr><td><code>/new</code></td><td class="libre">Nouvelle conversation (à faire à chaque changement de sujet : le modèle reste plus précis)</td></tr>
+      <tr><td><code>/sessions</code> · <code>/resume</code></td><td class="libre">Parcourir et reprendre une ancienne conversation</td></tr>
+      <tr><td><code>/title Mon sujet</code></td><td class="libre">Donner un nom à la conversation</td></tr>
+      <tr><td><code>/retry</code> · <code>/undo</code></td><td class="libre">Refaire la dernière réponse · revenir un message en arrière</td></tr>
+      <tr><td><code>/status</code> · <code>/context</code></td><td class="libre">Modèle, jetons utilisés, remplissage du contexte (jauge)</td></tr>
+      <tr><td><code>/compress</code></td><td class="libre">Résumer la conversation pour libérer du contexte</td></tr>
+      <tr><td><code>/plan</code></td><td class="libre">Écrire un plan d'action sans rien exécuter</td></tr>
+      <tr><td><code>/goal</code></td><td class="libre">Fixer un objectif sur lequel Hermes travaille jusqu'à ce qu'il soit atteint</td></tr>
+      <tr><td><code>/bg</code></td><td class="libre">Lancer une demande en arrière-plan dans une session séparée</td></tr>
+      <tr><td><code>/btw</code></td><td class="libre">Poser une question annexe sans interrompre le travail en cours</td></tr>
+      <tr><td><code>/queue</code> · <code>/steer</code></td><td class="libre">Préparer le message suivant · glisser une consigne pendant qu'il travaille</td></tr>
+      <tr><td><code>/agents</code></td><td class="libre">Voir les agents et sous-agents en cours</td></tr>
+      <tr><td><code>/memory</code></td><td class="libre">Revoir ce qu'il veut mémoriser, ou exiger votre accord avant chaque ajout</td></tr>
+      <tr><td><code>/skills</code> · <code>/learn</code></td><td class="libre">Gérer les compétences · lui faire apprendre une compétence à partir d'une description, d'un dossier ou de la conversation</td></tr>
+      <tr><td><code>/refine</code></td><td class="libre">Lui demander de tirer les leçons de la conversation (mémoire et compétences)</td></tr>
+      <tr><td><code>/tools list</code> · <code>/toolsets</code></td><td class="libre">Voir les outils actifs</td></tr>
+      <tr><td><code>/image</code> · <code>/paste</code></td><td class="libre">Joindre une image (fichier ou presse-papiers) : le modèle sait lire les images</td></tr>
+      <tr><td><code>/copy</code> · <code>/save</code></td><td class="libre">Copier la dernière réponse · exporter la conversation</td></tr>
+      <tr><td><code>/cron</code></td><td class="libre">Gérer les tâches planifiées</td></tr>
+      <tr><td><code>/usage</code> · <code>/insights</code></td><td class="libre">Statistiques d'utilisation</td></tr>
+      <tr><td><code>/version</code> · <code>/update</code></td><td class="libre">Version · mise à jour</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>La mémoire : comment Hermes se souvient de vous</h3>
+  <p>Hermes a trois sortes de mémoire, toutes stockées sur votre PC dans <code>%LOCALAPPDATA%\hermes</code> :</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Mémoire</th><th>Contenu</th><th>Fichier</th></tr></thead>
+    <tbody>
+      <tr><td>Profil</td><td class="libre">Qui vous êtes, vos préférences. Déjà rempli : « étudiant ingénieur francophone, biomécanique, chef de projet ».</td><td class="libre"><code>memories\USER.md</code></td></tr>
+      <tr><td>Notes de l'agent</td><td class="libre">Ce qu'il a appris en travaillant (faits, astuces, conventions)</td><td class="libre"><code>memories\MEMORY.md</code></td></tr>
+      <tr><td>Conversations</td><td class="libre">Tout l'historique, qu'il peut rechercher et résumer (« Session Search »)</td><td class="libre"><code>sessions\</code></td></tr>
+      <tr><td>Compétences</td><td class="libre">Méthodes réutilisables qu'il écrit lui-même après une tâche réussie</td><td class="libre"><code>skills\</code></td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>Lui apprendre quelque chose :</b> « Retiens que je rends mes rapports en LaTeX. »</li>
+    <li><b>Lui faire oublier :</b> « Oublie ce que tu sais sur mon stage. » Vous pouvez aussi ouvrir <code>USER.md</code> ou <code>MEMORY.md</code> dans le Bloc-notes et effacer la ligne vous-même.</li>
+    <li><b>Contrôler ce qu'il retient :</b> <code>/memory</code> permet d'exiger votre accord avant chaque ajout.</li>
+    <li>La mémoire est volontairement <b>limitée en taille</b> : quand elle est pleine, Hermes résume et remplace les vieilles notes.</li>
+    <li>Un « conservateur » range les compétences en arrière-plan (première passe environ 7 jours après l'installation). Il archive mais ne supprime jamais. Aperçu : <code>hermes curator run --dry-run</code>.</li>
+  </ul>
+
+  <h3>Les sous-agents</h3>
+  <p>Demandez-le en clair, par exemple : « Utilise deux sous-agents : l'un compare les orthèses de genou A et B, l'autre cherche les études récentes, puis fais une synthèse. » Chaque sous-agent a son propre contexte et rend un résumé.</p>
+  <div class="encadre warn"><div class="titre">Sur votre machine</div><p>Les sous-agents partagent le même modèle local : ils avancent surtout <b>les uns après les autres</b>, pas vraiment en parallèle. Le réglage limite à 2 sous-agents simultanés pour ne pas saturer la mémoire. Une tâche avec sous-agents prend facilement 2 à 10 minutes.</p></div>
+
+  <h3>La recherche web et le navigateur</h3>
+  <ul>
+    <li><b>Recherche</b> (<code>web_search</code>) : passe par SearXNG puis l'API Brave. <b>Morphic doit être allumé</b> (script de démarrage), sinon la recherche échoue.</li>
+    <li><b>Lecture de pages</b> : Hermes ouvre la page dans <b>son propre Chromium</b>, sur votre PC, sans vos comptes ni vos mots de passe. Les services en ligne de lecture de pages sont volontairement coupés.</li>
+    <li>Chaque recherche consomme une requête de votre crédit Brave gratuit (voir Coûts).</li>
+  </ul>
+
+  <h3>Les tâches planifiées</h3>
+  <p>Hermes peut exécuter une tâche à heure fixe (« chaque lundi à 8 h, fais-moi la liste des articles sur l'exosquelette »). Ces tâches ne tournent <b>que si la passerelle d'Hermes est allumée</b>. Elle ne démarre jamais seule.</p>
+  <div class="cmd"><pre><code>hermes cron list
+hermes gateway run</code></pre></div>
+  <p class="attendu"><code>hermes gateway run</code> garde la fenêtre PowerShell occupée : fermez-la pour arrêter les tâches. <code>hermes cron status</code> indique si le planificateur tourne ; <code>hermes pause</code> est l'arrêt d'urgence.</p>
+
+  <h3>Les outils autorisés (liste blanche)</h3>
+  <p>Hermes a 91 outils dans son code ; <b>32 sont autorisés</b>, en 10 groupes. Tout le reste est coupé.</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Groupe</th><th>Permet</th><th>État</th></tr></thead>
+    <tbody>
+      <tr><td><code>search</code></td><td class="libre">Recherche web (Brave)</td><td>✅ actif</td></tr>
+      <tr><td><code>browser</code></td><td class="libre">Navigateur local : ouvrir, lire, cliquer, remplir</td><td>✅ actif</td></tr>
+      <tr><td><code>file</code></td><td class="libre">Lire, écrire, modifier, chercher des fichiers</td><td>✅ actif</td></tr>
+      <tr><td><code>memory</code> · <code>session_search</code></td><td class="libre">Mémoire durable · recherche dans les anciennes conversations</td><td>✅ actif</td></tr>
+      <tr><td><code>skills</code></td><td class="libre">Créer et utiliser des compétences</td><td>✅ actif</td></tr>
+      <tr><td><code>delegation</code></td><td class="libre">Sous-agents</td><td>✅ actif</td></tr>
+      <tr><td><code>cronjob</code></td><td class="libre">Tâches planifiées</td><td>✅ actif</td></tr>
+      <tr><td><code>todo</code> · <code>clarify</code></td><td class="libre">Liste d'étapes · vous poser une question</td><td>✅ actif</td></tr>
+      <tr><td><code>terminal</code> · <code>code_execution</code></td><td class="libre">Lancer n'importe quelle commande ou programme sur le PC</td><td>⛔ coupé</td></tr>
+      <tr><td><code>computer_use</code></td><td class="libre">Piloter souris et clavier</td><td>⛔ coupé (non installé)</td></tr>
+      <tr><td><code>image_gen</code> · <code>tts</code> · <code>vision</code></td><td class="libre">Images et voix (services en ligne) · analyse d'image dédiée</td><td>⛔ coupé</td></tr>
+      <tr><td><code>connections</code> · messageries</td><td class="libre">Comptes en ligne, Telegram, Discord, WhatsApp…</td><td>⛔ coupé</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cmd"><pre><code>hermes tools --summary
+hermes tools enable vision
+hermes tools disable vision</code></pre></div>
+  <p class="attendu">Pour revenir exactement aux réglages de ce guide : <code>&amp; "C:\Users\ateat\source\repos\ia-locale\config\hermes\appliquer-reglages-hermes.ps1"</code></p>
+  <div class="encadre danger"><div class="titre">À ne pas faire</div><ul>
+    <li><code>/yolo</code> : supprime toutes les demandes d'autorisation.</li>
+    <li>Activer <code>terminal</code> ou <code>code_execution</code> sans bien comprendre : l'agent pourrait exécuter n'importe quelle commande.</li>
+    <li><code>/browser</code> pour le brancher sur <b>votre</b> navigateur : il aurait accès à vos sessions ouvertes.</li>
+    <li><code>/login</code>, <code>hermes portal</code>, <code>hermes model</code> vers un fournisseur en ligne, <code>/moa</code> : vos messages partiraient chez un tiers.</li>
+  </ul></div>
+
+  <h3>Entretien d'Hermes</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Commande</th><th>Rôle</th></tr></thead>
+    <tbody>
+      <tr><td><code>hermes doctor</code></td><td class="libre">Diagnostic complet (un avertissement « web extract : no provider » est normal et voulu)</td></tr>
+      <tr><td><code>hermes update</code></td><td class="libre">Mise à jour ; vos réglages sont conservés</td></tr>
+      <tr><td><code>hermes backup -o C:\Users\ateat\source\sauvegardes\hermes.zip</code></td><td class="libre">Sauvegarde de la mémoire, des compétences et des conversations</td></tr>
+      <tr><td><code>hermes security</code></td><td class="libre">Audit des dépendances (failles connues)</td></tr>
+      <tr><td><code>hermes config get model.default</code></td><td class="libre">Lire un réglage</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 06 -->
+<section class="chapitre" id="morphic">
+  <header><div class="num">06</div><h2>Morphic : le moteur de réponses</h2></header>
+  <p>Morphic remplace Perplexity. Vous posez une question, il cherche sur le web avec Brave, lit les résultats et rédige une réponse en citant ses sources. Il ne fonctionne que si le script de démarrage a été lancé.</p>
+  <ol class="etapes">
+    <li><div><p>Ouvrez <a href="http://localhost:3000">http://localhost:3000</a> dans votre navigateur.</p></div></li>
+    <li><div><p>En bas à droite de la zone de saisie, cliquez sur le nom du modèle et choisissez <b>qwen3.6-35b-64k:latest</b>. Le choix est mémorisé.</p></div></li>
+    <li><div><p>Tapez votre question et appuyez sur <kbd>Entrée</kbd>. Vous verrez d'abord la réflexion du modèle (« Thoughts »), puis la recherche (« ✓ 10 results »), puis la réponse avec ses sources.</p></div></li>
+  </ol>
+  <div class="tableau"><table>
+    <thead><tr><th>Élément</th><th>Usage</th></tr></thead>
+    <tbody>
+      <tr><td>Modes Quick / Adaptive</td><td class="libre">Quick : rapide, une ou deux recherches. Adaptive : enquête plus poussée, plus de recherches (plus long et plus de crédit Brave).</td></tr>
+      <tr><td>Boutons Decide, Troubleshoot, How-to…</td><td class="libre">Modèles de question : décider, dépanner, apprendre à faire, comprendre, créer</td></tr>
+      <tr><td>Barre latérale (icône en haut à gauche)</td><td class="libre">Historique de vos recherches, enregistré dans la base PostgreSQL locale</td></tr>
+      <tr><td>Autres modèles</td><td class="libre"><code>qwen3.5:9b</code> : 3 à 4 fois plus rapide, moins précis. Pratique pour les questions simples.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="encadre info"><div class="titre">Ce qui a été réglé pour vous</div><ul>
+    <li>Moteur de recherche : <b>API Brave uniquement</b>, jamais Google.</li>
+    <li>Icônes des sites désactivées : elles passaient par un service de Google.</li>
+    <li>Le service Tavily est rendu injoignable : sans ce blocage, Morphic lui enverrait l'adresse des PDF lus, même sans clé.</li>
+    <li>Aucun compte : un seul utilisateur, vous, et l'application n'est visible que depuis ce PC.</li>
+    <li>Aucun redémarrage automatique des conteneurs.</li>
+  </ul></div>
+  <h3>Commandes utiles (dans le dossier de Morphic)</h3>
+  <div class="cmd"><pre><code>Set-Location C:\Users\ateat\source\outils\morphic
+docker compose ps
+docker compose logs --tail 50 morphic
+docker compose restart searxng
+docker compose stop</code></pre></div>
+</section>
+
+<!-- 07 -->
+<section class="chapitre" id="opencode">
+  <header><div class="num">07</div><h2>OpenCode : l'agent de code</h2></header>
+  <p>OpenCode travaille dans un dossier de projet. Il lit votre code, l'explique, propose et applique des modifications, lance des commandes (tests, scripts), toujours avec votre accord.</p>
+  <h3>Lancer</h3>
+  <div class="cmd"><pre><code>Set-Location C:\Users\ateat\source\repos\ia-locale\essai-opencode
+opencode</code></pre></div>
+  <p class="attendu">L'interface s'ouvre dans le terminal, avec le modèle <b>ollama/qwen3.6-35b-64k</b> déjà choisi.</p>
+  <h3>Les deux modes</h3>
+  <div class="cartes">
+    <div class="carte"><div class="role">Touche Tab pour changer</div><h3>Build</h3><p>Peut modifier les fichiers et lancer des commandes. Il vous demande l'autorisation avant chaque modification et chaque commande (réglage ajouté pour vous).</p></div>
+    <div class="carte"><div class="role">Analyse sans toucher</div><h3>Plan</h3><p>Lit, explique et propose un plan, sans rien modifier. Idéal pour découvrir un projet ou préparer une modification.</p></div>
+  </div>
+  <h3>Raccourcis et commandes</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Saisie</th><th>Effet</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Tab</kbd></td><td class="libre">Passer de Build à Plan et inversement</td></tr>
+      <tr><td><code>@nom-de-fichier</code></td><td class="libre">Joindre un fichier à la demande (recherche approximative)</td></tr>
+      <tr><td><code>!commande</code></td><td class="libre">Lancer une commande vous-même, par exemple <code>!python angles.py</code></td></tr>
+      <tr><td><code>/init</code></td><td class="libre">Créer un fichier <code>AGENTS.md</code> qui décrit le projet à l'agent (à faire une fois par projet)</td></tr>
+      <tr><td><code>/undo</code> · <code>/redo</code></td><td class="libre">Annuler le dernier message <b>et ses modifications de fichiers</b> · rétablir</td></tr>
+      <tr><td><code>/new</code> · <code>/sessions</code></td><td class="libre">Nouvelle session · reprendre une session</td></tr>
+      <tr><td><code>/models</code></td><td class="libre">Changer de modèle</td></tr>
+      <tr><td><code>/compact</code></td><td class="libre">Résumer la session pour libérer du contexte</td></tr>
+      <tr><td><code>/thinking</code> · <code>/details</code></td><td class="libre">Afficher la réflexion · le détail des outils</td></tr>
+      <tr><td><code>/export</code></td><td class="libre">Enregistrer la conversation en Markdown</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd> · <kbd>Ctrl</kbd>+<kbd>X</kbd> puis <kbd>Q</kbd></td><td class="libre">Palette de commandes · quitter</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Le coût de la session</h3>
+  <p>Il s'affiche dans l'interface et reste à <b>0,00 $</b> : tout est calculé sur votre PC. Le total de toutes vos sessions :</p>
+  <div class="cmd"><pre><code>opencode stats</code></pre></div>
+  <h3>Sans ouvrir l'interface</h3>
+  <div class="cmd"><pre><code>opencode run "Lis README.md et angles.py puis explique la fonction flexion_genou"</code></pre></div>
+  <div class="encadre warn"><div class="titre">Trois règles pour coder sereinement</div><ol>
+    <li>Travaillez <b>dans un dépôt Git</b> et faites un commit avant de laisser l'agent modifier : vous pourrez toujours revenir en arrière.</li>
+    <li><b>Nommez les fichiers</b> à lire (ou utilisez <code>@</code>) : ce modèle local se perd s'il doit tout chercher seul.</li>
+    <li>Lisez chaque demande d'autorisation avant d'accepter, surtout pour les commandes.</li>
+  </ol></div>
+  <p>Réglages : <code>C:\Users\ateat\.config\opencode\opencode.json</code>. Seul le fournisseur Ollama est autorisé, et le partage de sessions est désactivé.</p>
+</section>
+
+<!-- 08 -->
+<section class="chapitre" id="ollama">
+  <header><div class="num">08</div><h2>Ollama et les modèles</h2></header>
+  <p>Ollama est le moteur qui fait tourner les modèles. Les trois outils lui envoient leurs demandes.</p>
+  <h3>Vos modèles</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Nom</th><th>Taille</th><th>Usage</th></tr></thead>
+    <tbody class="num-tab">
+      <tr><td><code>qwen3.6-35b-64k</code></td><td>22 Go</td><td class="libre"><b>Le modèle principal</b> des trois outils : version de qwen3.6:35b avec 64K de contexte et lecture directe depuis le disque (mmap). Aucun espace disque en plus.</td></tr>
+      <tr><td><code>qwen3.6:35b</code></td><td>22 Go</td><td class="libre">Le modèle d'origine (contexte réduit par défaut). Ne pas supprimer : le précédent en dépend.</td></tr>
+      <tr><td><code>qwen3.5:9b</code></td><td>6,6 Go</td><td class="libre">Plus petit et plus rapide, moins capable</td></tr>
+      <tr><td><code>qwen3.5:4b</code></td><td>3,4 Go</td><td class="libre">Très rapide, pour des tâches simples</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Commandes</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+    <tbody>
+      <tr><td><code>ollama list</code></td><td class="libre">Modèles installés</td></tr>
+      <tr><td><code>ollama ps</code></td><td class="libre">Modèle chargé, répartition processeur/carte graphique, contexte</td></tr>
+      <tr><td><code>ollama stop qwen3.6-35b-64k</code></td><td class="libre">Décharger le modèle de la mémoire (il se décharge seul après 5 minutes d'inactivité)</td></tr>
+      <tr><td><code>ollama show qwen3.6-35b-64k --parameters</code></td><td class="libre">Vérifier les réglages (<code>num_ctx 65536</code>, <code>use_mmap true</code>)</td></tr>
+      <tr><td><code>ollama run qwen3.5:9b</code></td><td class="libre">Discuter directement avec un modèle (<code>/bye</code> pour quitter)</td></tr>
+      <tr><td><code>ollama rm nom</code></td><td class="libre">Supprimer un modèle, <b>définitivement</b> : réfléchissez avant</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Ajouter un modèle malgré un Wi-Fi qui coupe</h3>
+  <p><code>ollama pull</code> recommence de zéro à chaque coupure. Le script du dépôt reprend à l'octet près et vérifie chaque fichier :</p>
+  <div class="cmd"><pre><code>&amp; "C:\Users\ateat\source\repos\ia-locale\scripts\telecharger-modele-ollama.ps1" -Modeles "gemma4:26b"</code></pre></div>
+  <p class="attendu">À la fin : <b>« PRÊT (… Go, SHA-256 vérifié) »</b>. Fermez puis relancez Ollama pour qu'il voie le nouveau modèle.</p>
+  <h3>Donner 64K de contexte à un nouveau modèle</h3>
+  <p>Hermes refuse les modèles avec moins de 64 000 jetons de contexte. Copiez le fichier <code>config\ollama\qwen3.6-35b-64k.Modelfile</code>, remplacez la ligne <code>FROM</code> par le nouveau modèle, puis :</p>
+  <div class="cmd"><pre><code>ollama create mon-modele-64k -f C:\chemin\vers\mon-modele-64k.Modelfile</code></pre></div>
+  <h3>Changer de modèle dans chaque outil</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Outil</th><th>Comment</th></tr></thead>
+    <tbody>
+      <tr><td>Hermes</td><td class="libre">Pour une session : <code>/model nom</code>. Pour toujours : <code>hermes config set model.default nom</code></td></tr>
+      <tr><td>OpenCode</td><td class="libre"><code>/models</code>. Un nouveau modèle doit d'abord être ajouté dans <code>opencode.json</code>, section <code>models</code>.</td></tr>
+      <tr><td>Morphic</td><td class="libre">Le sélecteur sous la zone de saisie : tous les modèles d'Ollama y apparaissent seuls</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 09 -->
+<section class="chapitre" id="prompts">
+  <header><div class="num">09</div><h2>Bien parler à une IA locale</h2></header>
+  <p>Un modèle local est moins « devin » qu'un grand modèle en ligne. Ces habitudes changent tout.</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Habitude</th><th>Plutôt que…</th><th>Écrivez…</th></tr></thead>
+    <tbody>
+      <tr><td>Une tâche à la fois</td><td class="libre">« Fais-moi un rapport complet sur la marche »</td><td class="libre">« Liste les 5 phases du cycle de marche avec leur durée en % »</td></tr>
+      <tr><td>Préciser le format</td><td class="libre">« Parle-moi du LCA »</td><td class="libre">« Explique le rôle du LCA en 3 phrases, en français, pour un étudiant ingénieur »</td></tr>
+      <tr><td>Nommer les fichiers</td><td class="libre">« Regarde mon projet »</td><td class="libre">« Lis README.md et angles.py, puis… »</td></tr>
+      <tr><td>Demander des sources</td><td class="libre">« C'est vrai que… ? »</td><td class="libre">« Cherche sur le web et cite 2 sources avec leur adresse »</td></tr>
+      <tr><td>Découper</td><td class="libre">Un long sujet dans une seule conversation</td><td class="libre"><code>/new</code> à chaque nouveau sujet ; <code>/compress</code> si la conversation s'allonge</td></tr>
+      <tr><td>Faire vérifier</td><td class="libre">Accepter la première réponse</td><td class="libre">« Relis ta réponse et corrige les erreurs de calcul »</td></tr>
+    </tbody>
+  </table></div>
+  <div class="encadre warn"><div class="titre">Toujours vérifier</div><p>Le modèle peut inventer (« halluciner ») des chiffres, des références ou des noms de fonctions, et faire des coquilles. Pour tout ce qui compte (cours, rapport, médical, calcul de structure), vérifiez la source citée.</p></div>
+</section>
+
+<!-- 10 -->
+<section class="chapitre" id="materiel">
+  <header><div class="num">10</div><h2>Performances et santé du matériel</h2></header>
+  <h3>Vitesses mesurées sur votre PC</h3>
+  <div class="jauge" role="img" aria-label="Durées mesurées : chargement du modèle 16 à 21 secondes, recherche Hermes 80 secondes, sous-agent Hermes 127 secondes, résumé OpenCode 148 secondes, recherche Morphic environ 180 secondes.">
+    <div class="ligne"><span>Chargement du modèle</span><div class="barre"><i style="width:10%"></i></div><span class="val">16 à 21 s</span></div>
+    <div class="ligne"><span>Hermes : recherche web</span><div class="barre"><i style="width:44%"></i></div><span class="val">80 s</span></div>
+    <div class="ligne"><span>Hermes : sous-agent</span><div class="barre"><i style="width:70%"></i></div><span class="val">127 s</span></div>
+    <div class="ligne"><span>OpenCode : résumé</span><div class="barre"><i style="width:82%"></i></div><span class="val">148 s</span></div>
+    <div class="ligne"><span>Morphic : réponse sourcée</span><div class="barre"><i style="width:100%"></i></div><span class="val">≈ 180 s</span></div>
+  </div>
+  <p>Le modèle lit environ <b>270 jetons par seconde</b> et en écrit <b>12 à 20</b> par seconde. Les agents sont lents surtout parce qu'ils envoient de longues consignes (8 000 à 10 000 jetons) avant chaque réponse.</p>
+  <h3>Mémoire</h3>
+  <ul>
+    <li>Quand le modèle est chargé, il réserve environ <b>8 Go</b> et en lit davantage depuis le disque ; il reste 7 à 12 Go libres pour le reste du PC.</li>
+    <li>Docker et WSL sont limités à <b>6 Go</b> (fichier <code>C:\Users\ateat\.wslconfig</code>).</li>
+    <li>Évitez de faire travailler deux outils <b>en même temps</b> : ils se partagent le modèle, et chacun attend l'autre.</li>
+  </ul>
+  <h3>Ménager votre ordinateur portable</h3>
+  <div class="encadre ok"><div class="titre">Bonnes pratiques</div><ul>
+    <li>Branchez le PC sur <b>secteur</b> pendant les longues sessions : sur batterie, Windows bride le processeur et la batterie s'use vite.</li>
+    <li>Posez-le sur une <b>surface dure</b> (pas sur un lit ou un coussin) pour que les aérations respirent. Un support ventilé aide pendant les longues tâches.</li>
+    <li>Le ventilateur qui souffle fort pendant une réponse est <b>normal</b> : le processeur travaille à fond. Windows et le matériel se protègent seuls s'ils chauffent trop.</li>
+    <li>Lancez le <b>script d'arrêt</b> après usage pour libérer la mémoire et laisser le PC refroidir.</li>
+    <li>Si vous aviez désactivé la mise en veille pour la nuit d'installation, <b>remettez vos réglages</b> d'alimentation habituels.</li>
+  </ul></div>
+  <h3>Espace disque</h3>
+  <p>Il reste environ <b>43 Go</b> libres sur C:. Vous pouvez récupérer environ 1,5 Go en supprimant le dossier des installateurs déjà utilisés : <code>C:\Users\ateat\source\outils\installateurs</code>. Gardez toujours au moins 20 Go libres : Windows et Docker en ont besoin.</p>
+</section>
+
+<!-- 11 -->
+<section class="chapitre" id="confidentialite">
+  <header><div class="num">11</div><h2>Confidentialité et sécurité</h2></header>
+  <h3>Ce qui sort de votre PC, et ce qui n'en sort jamais</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Destinataire</th><th>Ce qu'il reçoit</th><th>Quand</th></tr></thead>
+    <tbody>
+      <tr><td>API Brave</td><td class="libre">Le texte de la recherche (formulé par le modèle)</td><td class="libre">À chaque recherche web (Hermes, Morphic)</td></tr>
+      <tr><td>Sites web consultés</td><td class="libre">L'adresse IP de votre box, comme une visite normale</td><td class="libre">Quand une page est lue</td></tr>
+      <tr><td>GitHub, Docker Hub, npm, Chocolatey, Ollama</td><td class="libre">Rien de personnel (téléchargement de logiciels)</td><td class="libre">Installations et mises à jour</td></tr>
+      <tr><td><b>Fournisseurs d'IA</b> (OpenAI, Anthropic, Google…)</td><td class="libre"><b>Rien</b></td><td class="libre"><b>Jamais</b> : le modèle tourne chez vous</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Les fuites qui ont été bouchées</h3>
+  <ul>
+    <li>Hermes pouvait <b>emprunter votre connexion Claude Code</b> : vos messages seraient partis chez Anthropic. Coupé (<code>auth.adopt_external_logins: false</code>).</li>
+    <li>Hermes utilisait en secret un <b>service en ligne gratuit (« Parallel ») pour lire les pages</b>, même via une adresse précédée de <code>@</code> dans un message. Coupé (<code>web.keyless_fallback: false</code>).</li>
+    <li>Statistiques d'Hermes : désactivées (vérifié).</li>
+    <li>Morphic : Google (recherche et icônes) et Tavily neutralisés.</li>
+    <li>OpenCode : fournisseurs en ligne interdits, partage désactivé.</li>
+  </ul>
+  <h3>Où sont vos secrets</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Secret</th><th>Fichier</th><th>Dans Git ?</th></tr></thead>
+    <tbody>
+      <tr><td>Clé API Brave</td><td class="libre"><code>C:\Users\ateat\source\outils\morphic\searxng-settings.local.yml</code></td><td>Non, exclu</td></tr>
+      <tr><td>Secret SearXNG</td><td class="libre"><code>C:\Users\ateat\source\outils\morphic\.env.local</code></td><td>Non, exclu</td></tr>
+      <tr><td>Connexion GitHub</td><td class="libre">Gestionnaire d'identifiants Windows (géré par <code>gh</code>)</td><td>Non</td></tr>
+    </tbody>
+  </table></div>
+  <div class="encadre danger"><div class="titre">Recommandé : changer la clé Brave</div><p>La clé actuelle a été écrite dans une conversation : considérez-la comme exposée.</p><ol>
+    <li>Sur <a href="https://api-dashboard.search.brave.com">api-dashboard.search.brave.com</a> → API Keys : créez une nouvelle clé, puis supprimez l'ancienne.</li>
+    <li>Ouvrez <code>searxng-settings.local.yml</code> dans le Bloc-notes, remplacez la clé entre apostrophes, puis enregistrez.</li>
+    <li>Dans le dossier de Morphic, lancez <code>docker compose restart searxng</code>.</li>
+  </ol><p>À l'avenir, ne collez jamais une clé dans une conversation avec une IA : collez-la directement dans le fichier.</p></div>
+  <h3>Antivirus</h3>
+  <p>Bitdefender peut mettre en quarantaine <code>uv.exe</code> d'Hermes. C'est une <b>fausse alerte</b> connue, signalée par Nous Research. Restaurez le fichier depuis la quarantaine et ajoutez une exception pour le dossier <code>%LOCALAPPDATA%\hermes\bin</code>.</p>
+</section>
+
+<!-- 12 -->
+<section class="chapitre" id="couts">
+  <header><div class="num">12</div><h2>Coûts</h2></header>
+  <div class="tableau"><table>
+    <thead><tr><th>Élément</th><th>Coût</th></tr></thead>
+    <tbody>
+      <tr><td>Hermes, Morphic, OpenCode, Ollama, Docker Desktop</td><td class="libre">Gratuit (logiciels libres ; Docker Desktop est gratuit pour un usage personnel et étudiant)</td></tr>
+      <tr><td>Modèle Qwen 3.6</td><td class="libre">Gratuit, aucune limite d'usage</td></tr>
+      <tr><td>API Brave</td><td class="libre">5 $ de crédit offert chaque mois, soit environ <b>1 000 recherches</b> (5 $ les 1 000 au-delà). Une question à Morphic en consomme souvent 2 à 5, une recherche d'Hermes 1 à 3.</td></tr>
+      <tr><td>Électricité</td><td class="libre">Quelques centimes par heure d'utilisation intensive</td></tr>
+    </tbody>
+  </table></div>
+  <div class="encadre ok"><div class="titre">Garder 0 €</div><p>Sur le tableau de bord Brave, réglez une <b>limite de dépense mensuelle</b> si l'option est proposée, et surveillez votre consommation. Si le crédit est épuisé, la recherche s'arrête simplement jusqu'au mois suivant ; le reste fonctionne.</p></div>
+</section>
+
+<!-- 13 -->
+<section class="chapitre" id="mises-a-jour">
+  <header><div class="num">13</div><h2>Mises à jour</h2></header>
+  <p>Une fois par mois suffit. OpenCode et Hermes évoluent très vite et corrigent parfois des failles : ne les laissez pas des mois sans mise à jour.</p>
+  <div class="tableau"><table>
+    <thead><tr><th>Élément</th><th>Comment mettre à jour</th></tr></thead>
+    <tbody>
+      <tr><td>Hermes Agent</td><td class="libre"><code>hermes update</code> puis <code>hermes doctor</code></td></tr>
+      <tr><td>OpenCode</td><td class="libre">Dans un PowerShell ouvert <b>en administrateur</b> : <code>choco upgrade opencode -y</code></td></tr>
+      <tr><td>Morphic</td><td class="libre"><code>Set-Location C:\Users\ateat\source\outils\morphic; git pull; docker compose pull; docker compose up -d</code></td></tr>
+      <tr><td>Ollama</td><td class="libre">L'application propose elle-même les mises à jour (icône dans la barre des tâches). Sinon, téléchargez <code>OllamaSetup.exe</code> sur <a href="https://github.com/ollama/ollama/releases">github.com/ollama/ollama/releases</a> et vérifiez la signature « Ollama Inc. ».</td></tr>
+      <tr><td>Docker Desktop</td><td class="libre">Docker Desktop → Settings → Software updates</td></tr>
+      <tr><td>Modèles</td><td class="libre">Quand un meilleur modèle sort : script de téléchargement, puis recréer la version 64K (chapitre 08)</td></tr>
+      <tr><td>GitHub CLI</td><td class="libre">Rarement utile ; nouvelle version sur <a href="https://github.com/cli/cli/releases">github.com/cli/cli/releases</a></td></tr>
+    </tbody>
+  </table></div>
+  <div class="encadre info"><div class="titre">Après une mise à jour d'Hermes</div><p>Vérifiez que vos réglages tiennent toujours avec <code>hermes tools --summary</code> (10 groupes attendus). Si ce n'est pas le cas, relancez <code>config\hermes\appliquer-reglages-hermes.ps1</code>.</p></div>
+</section>
+
+<!-- 14 -->
+<section class="chapitre" id="sauvegardes">
+  <header><div class="num">14</div><h2>Données et sauvegardes</h2></header>
+  <div class="tableau"><table>
+    <thead><tr><th>Quoi</th><th>Où</th></tr></thead>
+    <tbody>
+      <tr><td>Hermes : réglages, mémoire, compétences, conversations</td><td class="libre"><code>%LOCALAPPDATA%\hermes</code> (copie des réglages d'origine : <code>config.yaml.avant-reglages-locaux</code>)</td></tr>
+      <tr><td>Morphic : code et réglages locaux</td><td class="libre"><code>C:\Users\ateat\source\outils\morphic</code></td></tr>
+      <tr><td>Morphic : historique</td><td class="libre">Volume Docker <code>morphic-stack_postgres_data</code></td></tr>
+      <tr><td>OpenCode : réglages · sessions</td><td class="libre"><code>C:\Users\ateat\.config\opencode</code> · <code>C:\Users\ateat\.local\share\opencode</code></td></tr>
+      <tr><td>Modèles</td><td class="libre"><code>C:\Users\ateat\.ollama\models</code></td></tr>
+      <tr><td>Documentation, scripts, réglages de ce projet</td><td class="libre"><code>C:\Users\ateat\source\repos\ia-locale</code>, copie privée sur <a href="https://github.com/AteaMR987/ia-locale">GitHub</a></td></tr>
+      <tr><td>Journaux d'installation et de tests</td><td class="libre"><code>C:\Users\ateat\source\outils\journaux</code></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Sauvegarder</h3>
+  <div class="cmd"><pre><code>New-Item -ItemType Directory -Force C:\Users\ateat\source\sauvegardes | Out-Null
+hermes backup -o C:\Users\ateat\source\sauvegardes\hermes.zip
+Set-Location C:\Users\ateat\source\outils\morphic
+docker compose exec -T postgres pg_dump -U morphic morphic &gt; C:\Users\ateat\source\sauvegardes\morphic.sql</code></pre></div>
+  <div class="encadre warn"><div class="titre">Attention à OneDrive</div><p>Ne rangez pas ces sauvegardes dans un dossier synchronisé (Bureau, Documents s'ils sont sur OneDrive) : la mémoire d'Hermes partirait dans le cloud de Microsoft. Le dossier <code>C:\Users\ateat\source\sauvegardes</code> reste local.</p></div>
+  <h3>Mettre à jour le dépôt sur GitHub</h3>
+  <div class="cmd"><pre><code>Set-Location C:\Users\ateat\source\repos\ia-locale
+git add -A
+git commit -m "Description du changement"
+git push</code></pre></div>
+</section>
+
+<!-- 15 -->
+<section class="chapitre" id="depannage">
+  <header><div class="num">15</div><h2>Dépannage</h2></header>
+  <div class="tableau"><table>
+    <thead><tr><th>Symptôme</th><th>Cause probable</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td class="libre">« hermes » ou « gh » n'est pas reconnu</td><td class="libre">Fenêtre PowerShell ouverte avant l'installation</td><td class="libre">Fermez et rouvrez PowerShell</td></tr>
+      <tr><td class="libre">Erreur « point de montage non approuvé » ou erreur 448 d'Ollama</td><td class="libre">Ollama lancé depuis un programme qui lui transmet une protection Windows</td><td class="libre">Quittez Ollama (icône de la barre des tâches → Quit), puis relancez-le depuis le menu Démarrer ou avec le script de démarrage</td></tr>
+      <tr><td class="libre">« model requires a newer version of Ollama »</td><td class="libre">Ollama trop ancien</td><td class="libre">Mettez Ollama à jour (chapitre 13)</td></tr>
+      <tr><td class="libre">Tout est très lent, le PC rame</td><td class="libre">Mémoire saturée, PC sur batterie, deux outils en même temps</td><td class="libre">Branchez le secteur, fermez les autres applications, vérifiez <code>ollama ps</code>, et que <code>use_mmap true</code> apparaît dans <code>ollama show qwen3.6-35b-64k --parameters</code></td></tr>
+      <tr><td class="libre">localhost:3000 ne s'ouvre pas</td><td class="libre">Docker ou Morphic éteint</td><td class="libre">Lancez le script de démarrage ; sinon <code>docker compose ps</code> dans le dossier de Morphic</td></tr>
+      <tr><td class="libre">Morphic ou Hermes ne trouvent rien sur le web</td><td class="libre">SearXNG éteint, ou crédit Brave épuisé, ou clé invalide</td><td class="libre">Testez <a href="http://127.0.0.1:8080/search?q=test&amp;format=json">127.0.0.1:8080/search?q=test&amp;format=json</a> ; regardez le crédit sur le tableau de bord Brave ; <code>docker compose logs searxng</code></td></tr>
+      <tr><td class="libre">Hermes : « context too small » ou réponses incohérentes</td><td class="libre">Mauvais modèle (contexte réduit)</td><td class="libre"><code>hermes config get model.default</code> doit afficher <code>qwen3.6-35b-64k</code></td></tr>
+      <tr><td class="libre">Hermes tourne sans fin</td><td class="libre">Tâche trop vaste pour le modèle</td><td class="libre"><kbd>Ctrl</kbd>+<kbd>C</kbd>, puis <code>/new</code> et une demande plus ciblée</td></tr>
+      <tr><td class="libre">OpenCode cherche dans les mauvais dossiers</td><td class="libre">Fichiers non nommés, dossier hors Git</td><td class="libre">Nommez les fichiers ou utilisez <code>@</code> ; travaillez dans un dépôt Git</td></tr>
+      <tr><td class="libre">OpenCode : aucun modèle disponible</td><td class="libre">Ollama éteint ou <code>opencode.json</code> abîmé</td><td class="libre">Vérifiez <code>ollama ps</code>, puis <code>opencode models ollama</code> ; recopiez <code>config\opencode\opencode.json</code> du dépôt</td></tr>
+      <tr><td class="libre">Docker Desktop ne démarre pas</td><td class="libre">WSL bloqué, ou droits pas encore pris en compte</td><td class="libre">Lancez <code>wsl --shutdown</code>, puis rouvrez Docker Desktop ; sinon fermez et rouvrez votre session Windows</td></tr>
+      <tr><td class="libre">Bitdefender bloque <code>uv.exe</code></td><td class="libre">Fausse alerte connue</td><td class="libre">Restaurez le fichier et ajoutez une exception pour <code>%LOCALAPPDATA%\hermes\bin</code></td></tr>
+      <tr><td class="libre">Téléchargement d'un modèle interrompu</td><td class="libre">Coupure du Wi-Fi</td><td class="libre">Relancez le script : il reprend où il s'était arrêté</td></tr>
+      <tr><td class="libre">Disque presque plein</td><td class="libre">Modèles, images Docker</td><td class="libre">Supprimez le dossier <code>installateurs</code> ; <code>ollama rm</code> pour un modèle inutile ; <code>docker image prune</code> (supprime les images non utilisées)</td></tr>
+    </tbody>
+  </table></div>
+  <p>En cas de doute, ces deux diagnostics résument presque tout : <code>hermes doctor</code> et le script de démarrage, qui teste chaque service.</p>
+</section>
+
+<!-- 16 -->
+<section class="chapitre" id="limites">
+  <header><div class="num">16</div><h2>Limites et bon usage</h2></header>
+  <p>Votre IA locale est <b>privée, gratuite et toujours disponible</b>, même hors ligne pour tout sauf la recherche web. Elle n'atteint pas le niveau de Claude, ChatGPT ou Gemini : elle est plus lente, se trompe plus souvent, et peine sur les longues tâches en plusieurs étapes.</p>
+  <h3>Quel outil pour quel besoin</h3>
+  <div class="tableau"><table>
+    <thead><tr><th>Besoin</th><th>Outil conseillé</th></tr></thead>
+    <tbody>
+      <tr><td class="libre">Question factuelle avec sources, veille, comparatif rapide</td><td class="libre">Morphic</td></tr>
+      <tr><td class="libre">Organiser un projet, résumer des documents locaux, retenir vos préférences, tâches répétées</td><td class="libre">Hermes</td></tr>
+      <tr><td class="libre">Recherche en plusieurs étapes, synthèse de plusieurs sources</td><td class="libre">Hermes avec sous-agents</td></tr>
+      <tr><td class="libre">Comprendre ou modifier un programme (Python, Arduino, MATLAB…)</td><td class="libre">OpenCode</td></tr>
+      <tr><td class="libre">Données personnelles, médicales ou confidentielles</td><td class="libre">Un des outils locaux, jamais un service en ligne</td></tr>
+      <tr><td class="libre">Raisonnement très difficile, gros code, rédaction exigeante</td><td class="libre">Un grand modèle en ligne, en n'y mettant rien de confidentiel</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 17 -->
+<section class="chapitre" id="aide-memoire">
+  <header><div class="num">17</div><h2>Aide-mémoire</h2></header>
+  <h3>Démarrer et arrêter</h3>
+  <div class="cmd"><pre><code>&amp; "C:\Users\ateat\source\repos\ia-locale\scripts\demarrer-ia-locale.ps1"
+&amp; "C:\Users\ateat\source\repos\ia-locale\scripts\arreter-ia-locale.ps1"</code></pre></div>
+  <h3>Utiliser</h3>
+  <div class="cmd"><pre><code>hermes                                   # discuter avec Hermes
+hermes chat -q "question"                # une seule question
+start http://localhost:3000              # ouvrir Morphic
+opencode                                 # agent de code dans le dossier courant
+opencode run "Lis X.py et explique-le"   # une seule demande</code></pre></div>
+  <h3>Vérifier</h3>
+  <div class="cmd"><pre><code>ollama ps
+docker ps --format "{{.Names}} : {{.Status}}"
+hermes doctor
+hermes tools --summary
+opencode stats</code></pre></div>
+  <h3>Mettre à jour</h3>
+  <div class="cmd"><pre><code>hermes update
+choco upgrade opencode -y                # PowerShell en administrateur
+Set-Location C:\Users\ateat\source\outils\morphic; git pull; docker compose pull; docker compose up -d</code></pre></div>
+  <h3>Dans Hermes</h3>
+  <p><code>/new</code> · <code>/sessions</code> · <code>/retry</code> · <code>/undo</code> · <code>/context</code> · <code>/compress</code> · <code>/plan</code> · <code>/goal</code> · <code>/memory</code> · <code>/skills</code> · <code>/learn</code> · <code>/image</code> · <code>/copy</code> · <code>/help</code> · <code>/quit</code> · <kbd>Ctrl</kbd>+<kbd>P</kbd> · <kbd>Ctrl</kbd>+<kbd>C</kbd></p>
+  <h3>Dans OpenCode</h3>
+  <p><kbd>Tab</kbd> Build/Plan · <code>@fichier</code> · <code>!commande</code> · <code>/init</code> · <code>/undo</code> · <code>/redo</code> · <code>/new</code> · <code>/sessions</code> · <code>/models</code> · <code>/compact</code> · <code>/export</code> · <kbd>Ctrl</kbd>+<kbd>X</kbd> <kbd>Q</kbd></p>
+</section>
+
+<!-- 18 -->
+<section class="chapitre" id="glossaire">
+  <header><div class="num">18</div><h2>Glossaire</h2></header>
+  <div class="tableau"><table>
+    <thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td class="libre">Porte d'entrée qu'un service offre aux programmes (ici : l'API Brave pour chercher)</td></tr>
+      <tr><td>Clé d'API</td><td class="libre">Mot de passe d'un programme auprès d'un service. Secret : jamais dans une conversation ni dans Git.</td></tr>
+      <tr><td>Conteneur (Docker)</td><td class="libre">Une application emballée avec tout ce dont elle a besoin, isolée du reste du PC</td></tr>
+      <tr><td>Contexte</td><td class="libre">Ce que le modèle voit à un instant : consignes, conversation, documents (64K jetons ici)</td></tr>
+      <tr><td>Hallucination</td><td class="libre">Information inventée mais présentée avec assurance</td></tr>
+      <tr><td>localhost / 127.0.0.1</td><td class="libre">« Ce PC-ci » : une adresse joignable seulement depuis votre machine</td></tr>
+      <tr><td>MCP</td><td class="libre">Protocole qui permet de brancher des outils supplémentaires sur un agent</td></tr>
+      <tr><td>mmap</td><td class="libre">Lecture du modèle directement depuis son fichier sur le disque, au lieu de le copier en mémoire</td></tr>
+      <tr><td>MoE</td><td class="libre">Mélange d'experts : seule une partie du modèle travaille à chaque mot</td></tr>
+      <tr><td>Ollama</td><td class="libre">Logiciel qui fait tourner les modèles sur votre PC</td></tr>
+      <tr><td>Port</td><td class="libre">Numéro de « porte » d'un service sur une machine (3000 pour Morphic…)</td></tr>
+      <tr><td>Quantification</td><td class="libre">Compression d'un modèle (Q4_K_M ≈ 4,5 bits par paramètre)</td></tr>
+      <tr><td>SearXNG</td><td class="libre">Moteur de métarecherche libre, installé chez vous, qui interroge d'autres moteurs (ici : Brave)</td></tr>
+      <tr><td>Compétence (skill)</td><td class="libre">Méthode écrite qu'Hermes réutilise ; il en crée lui-même avec l'expérience</td></tr>
+      <tr><td>Jeton (token)</td><td class="libre">Morceau de mot traité par le modèle (100 jetons ≈ 70 mots en français)</td></tr>
+      <tr><td>Mémoire graphique (VRAM)</td><td class="libre">Mémoire de la carte graphique : rapide mais limitée (8 Go ici)</td></tr>
+      <tr><td>WSL</td><td class="libre">Sous-système Linux de Windows, dont Docker Desktop se sert en coulisses</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</main>
+
+<footer class="pied">
+  <div>Dépôt du projet : <code>C:\Users\ateat\source\repos\ia-locale</code> · copie privée sur <a href="https://github.com/AteaMR987/ia-locale">github.com/AteaMR987/ia-locale</a></div>
+  <div>Voir aussi : <code>docs/journal-des-decisions.md</code> (27 décisions), <code>docs/analyse-securite.md</code>, <code>docs/choix-du-modele.md</code>, <code>docs/resultats-des-tests.md</code>.</div>
+</footer>
+</div>
+
+<script>
+(function () {
+  // Boutons « Copier » sur chaque bloc de commandes.
+  document.querySelectorAll('.cmd').forEach(function (bloc) {
+    var bouton = document.createElement('button');
+    bouton.type = 'button'; bouton.className = 'copier'; bouton.textContent = 'Copier';
+    bouton.addEventListener('click', function () {
+      var texte = bloc.querySelector('code').innerText;
+      var fini = function (ok) { bouton.textContent = ok ? 'Copié' : 'Sélectionné'; setTimeout(function () { bouton.textContent = 'Copier'; }, 1600); };
+      var selectionner = function () { var r = document.createRange(); r.selectNodeContents(bloc.querySelector('code')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); fini(false); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(texte).then(function () { fini(true); }, selectionner); } else { selectionner(); }
+    });
+    bloc.appendChild(bouton);
+  });
+
+  // Recherche dans le guide : masque les chapitres qui ne contiennent pas le texte.
+  var sans = function (t) { return t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); };
+  var chapitres = Array.prototype.slice.call(document.querySelectorAll('section.chapitre'));
+  var index = chapitres.map(function (c) { return sans(c.textContent); });
+  var liens = {}; document.querySelectorAll('nav.sommaire a').forEach(function (a) { liens[a.getAttribute('href').slice(1)] = a.parentElement; });
+  var champ = document.getElementById('filtre'), compte = document.getElementById('compte');
+  champ.addEventListener('input', function () {
+    var q = sans(champ.value.trim()), n = 0;
+    chapitres.forEach(function (c, i) { var ok = !q || index[i].indexOf(q) !== -1; c.classList.toggle('masque', !ok); if (liens[c.id]) liens[c.id].classList.toggle('masque', !ok); if (ok) n++; });
+    compte.textContent = q ? (n ? n + ' chapitre' + (n > 1 ? 's' : '') + ' trouvé' + (n > 1 ? 's' : '') : 'Aucun chapitre ne contient ce mot.') : '';
+  });
+
+  // Surligne dans le sommaire le chapitre en cours de lecture.
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entrees) {
+      entrees.forEach(function (e) { if (e.isIntersecting) { document.querySelectorAll('nav.sommaire a.actif').forEach(function (a) { a.classList.remove('actif'); }); var l = document.querySelector('nav.sommaire a[href="#' + e.target.id + '"]'); if (l) l.classList.add('actif'); } });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    chapitres.forEach(function (c) { obs.observe(c); });
+  }
+})();
+</script>

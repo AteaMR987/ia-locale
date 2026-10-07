@@ -24,6 +24,10 @@
   },
   "model": "ollama/qwen3.6-35b-64k",
   "small_model": "ollama/qwen3.6-35b-64k",
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  },
   "share": "disabled",
   "autoupdate": "notify"
 }

@@ -32,7 +32,8 @@ Pour tout arrêter et libérer la mémoire :
 
 | Chemin | Contenu |
 |---|---|
-| `docs/guide-utilisation.md` | Utilisation, mises à jour, ce qui sort du PC, dépannage |
+| `docs/guide-complet.html` | **Guide complet** (18 chapitres) : ouvrir dans un navigateur |
+| `docs/guide-utilisation.md` | Version courte : utilisation, mises à jour, ce qui sort du PC, dépannage |
 | `docs/analyse-securite.md` | Analyse des 8 outils proposés au départ et verdicts |
 | `docs/choix-du-modele.md` | Comparaison des modèles locaux et mesures |
 | `docs/journal-des-decisions.md` | Toutes les décisions (IA-001 à IA-027) |
