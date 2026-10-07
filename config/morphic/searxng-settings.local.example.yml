@@ -1,0 +1,37 @@
+# Réglages SearXNG locaux : Brave uniquement, par l'API officielle de Brave (jamais Google).
+# Remplace searxng-settings.yml grâce à docker-compose.override.yaml,
+# pour que le fichier d'origine du dépôt reste intact lors des mises à jour.
+# Le moteur « brave » sans clé est refusé par Brave (« too many requests ») : on utilise « braveapi ».
+use_default_settings:
+  engines:
+    keep_only:
+      - braveapi
+
+engines:
+  - name: braveapi
+    engine: braveapi
+    # Remplacez COLLEZ_ICI_VOTRE_CLE_BRAVE par votre clé (gardez les apostrophes), puis enregistrez.
+    api_key: 'COLLEZ_ICI_VOTRE_CLE_BRAVE'
+    inactive: false
+    results_per_page: 20
+
+server:
+  port: 8888
+  bind_address: '0.0.0.0'
+  base_url: false
+  limiter: false
+  public_instance: false
+  secret_key: 'ursecretkey' # remplacé par SEARXNG_SECRET (.env.local)
+  image_proxy: false
+  http_protocol_version: '1.0'
+  method: 'POST'
+  default_http_headers:
+    X-Content-Type-Options: nosniff
+    X-Download-Options: noopen
+    X-Robots-Tag: noindex, nofollow
+    Referrer-Policy: no-referrer
+
+search:
+  formats:
+    - html
+    - json

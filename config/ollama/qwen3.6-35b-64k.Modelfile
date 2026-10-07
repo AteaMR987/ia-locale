@@ -1,0 +1,10 @@
+# Qwen 3.6 35B (MoE, 3 milliards de paramètres actifs) avec 64K de contexte.
+# Hermes Agent exige au moins 64 000 jetons de contexte ; Ollama n'en donne que 4 096 par défaut.
+# use_mmap : le modèle est lu depuis son fichier au lieu d'être copié en mémoire réservée.
+#   Mesuré le 7/10/2026 (Ollama 0.40.0) : chargement 16 s au lieu de 75 s, 12,4 jetons/s au lieu de 9,3,
+#   mémoire réservée 8,4 Go au lieu de 26 Go (le PC garde ~7,5 Go disponibles au lieu de ~1 Go).
+# Création (aucun téléchargement, réutilise les fichiers de qwen3.6:35b) :
+#   ollama create qwen3.6-35b-64k -f qwen3.6-35b-64k.Modelfile
+FROM qwen3.6:35b
+PARAMETER num_ctx 65536
+PARAMETER use_mmap true

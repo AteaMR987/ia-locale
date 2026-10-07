@@ -1,0 +1,21 @@
+# Secrets : jamais dans Git
+.env
+.env.*
+!*.example
+*.key
+*secret*
+searxng-settings.local.yml
+
+# Journaux, installateurs et téléchargements
+*.log
+journaux/
+installateurs/
+*.part
+*.exe
+*.msi
+
+# Fichiers temporaires
+__pycache__/
+*.pyc
+node_modules/
+.opencode/

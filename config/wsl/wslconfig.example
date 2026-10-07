@@ -1,0 +1,5 @@
+# Copie de C:\Users\ateat\.wslconfig : limite la mémoire de WSL, donc de Docker Desktop, à 6 Go,
+# pour laisser le reste au modèle d'IA local. Prise en compte après « wsl --shutdown » ou un redémarrage.
+[wsl2]
+debugConsole=true
+memory=6GB

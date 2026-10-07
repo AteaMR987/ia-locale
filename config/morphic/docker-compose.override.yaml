@@ -1,0 +1,33 @@
+# Réglages locaux, lus automatiquement par « docker compose » en plus de docker-compose.yaml.
+# - Tous les ports n'écoutent que sur ce PC (127.0.0.1), jamais sur le réseau Wi-Fi.
+# - PostgreSQL de Morphic sur le port 5433 du PC.
+# - SearXNG utilise searxng-settings.local.yml (Brave uniquement).
+# - api.tavily.com est rendu injoignable : sans clé, Morphic lui enverrait quand même
+#   l'adresse des PDF et des pages dynamiques lus (docs/PRIVACY.md).
+# - Aucun redémarrage automatique : rien ne se relance au démarrage de Windows.
+services:
+  morphic:
+    ports: !override
+      - '127.0.0.1:3000:3000'
+    extra_hosts:
+      - 'api.tavily.com:127.0.0.1'
+    restart: 'no'
+
+  postgres:
+    ports: !override
+      - '127.0.0.1:5433:5432'
+    restart: 'no'
+
+  redis:
+    ports: !override
+      - '127.0.0.1:6379:6379'
+    restart: 'no'
+
+  searxng:
+    ports: !override
+      - '127.0.0.1:8080:8080'
+    volumes: !override
+      - ./searxng-limiter.toml:/etc/searxng/limiter.toml
+      - ./searxng-settings.local.yml:/etc/searxng/settings.yml
+      - searxng_data:/data
+    restart: 'no'

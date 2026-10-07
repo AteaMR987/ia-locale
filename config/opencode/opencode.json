@@ -1,0 +1,29 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": ["ollama"],
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434/v1"
+      },
+      "models": {
+        "qwen3.6-35b-64k": {
+          "name": "Qwen 3.6 35B (local, 64K)",
+          "tool_call": true,
+          "reasoning": true,
+          "attachment": true,
+          "limit": {
+            "context": 65536,
+            "output": 16384
+          }
+        }
+      }
+    }
+  },
+  "model": "ollama/qwen3.6-35b-64k",
+  "small_model": "ollama/qwen3.6-35b-64k",
+  "share": "disabled",
+  "autoupdate": "notify"
+}
