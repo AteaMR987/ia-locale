@@ -28,3 +28,6 @@ Projet séparé de WAVE, à la demande de l'utilisateur (7 octobre 2026). Chaque
 | IA-022 | 07/10 | Lancer Ollama par l'Explorateur dans `demarrer-ia-locale.ps1` | Lancé depuis certains programmes, Ollama hérite d'une protection Windows (erreur 448) et ne lit plus ses modèles |
 | IA-023 | 07/10 | Démarrage automatique d'Ollama avec Windows laissé tel quel | Il existait avant ce projet ; Ollama au repos consomme peu |
 | IA-024 | 07/10 | Dépôt séparé `ia-locale`, privé | Ne pas mélanger avec WAVE ; aucune clé ni donnée personnelle dans Git |
+| IA-025 | 07/10 | GitHub CLI 2.102.0 en version portable (`%LOCALAPPDATA%\Programs\gh`), empreinte et signature vérifiées | Publier ce dépôt sans droits administrateur ; connexion faite par l'utilisateur (`gh auth login`) |
+| IA-026 | 07/10 | Pas de Terminal pour Hermes, même pour GitHub | La compétence GitHub d'Hermes passe par `gh` dans le Terminal, qui permettrait toute commande sur le PC ; voie recommandée : serveur MCP officiel de GitHub avec un jeton limité au seul dépôt visé |
+| IA-027 | 07/10 | Tests de bout en bout des trois outils (voir `resultats-des-tests.md`) | Vérifier le fonctionnement réel, pas seulement l'installation |

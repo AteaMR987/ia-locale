@@ -87,7 +87,17 @@ Coupés exprès :
 - icônes Google ;
 - partage des sessions OpenCode.
 
-## 7. Dépannage
+## 7. GitHub pour Hermes (étape restante, facultative)
+
+La compétence GitHub d'Hermes utilise la commande `gh` dans le Terminal, que la liste blanche coupe volontairement. La voie sûre :
+
+1. Sur GitHub : Settings → Developer settings → Fine-grained tokens → Generate new token. Choisissez **Only select repositories : wave**, avec les droits Issues et Pull requests en lecture et écriture, et Contents en lecture.
+2. Ajoutez le serveur MCP officiel de GitHub à Hermes avec ce jeton. C'est vous qui collez le jeton dans `%LOCALAPPDATA%\hermes\.env`, jamais dans une conversation.
+3. Ajoutez seulement les outils GitHub voulus à la liste blanche (notation `github:nom_outil`).
+
+Le jeton ne donne alors accès qu'au dépôt `wave`, et Hermes ne peut toujours exécuter aucune commande sur le PC.
+
+## 8. Dépannage
 
 | Problème | Solution |
 |---|---|

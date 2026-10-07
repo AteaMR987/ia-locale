@@ -35,7 +35,8 @@ Pour tout arrêter et libérer la mémoire :
 | `docs/guide-utilisation.md` | Utilisation, mises à jour, ce qui sort du PC, dépannage |
 | `docs/analyse-securite.md` | Analyse des 8 outils proposés au départ et verdicts |
 | `docs/choix-du-modele.md` | Comparaison des modèles locaux et mesures |
-| `docs/journal-des-decisions.md` | Toutes les décisions (IA-001 à IA-024) |
+| `docs/journal-des-decisions.md` | Toutes les décisions (IA-001 à IA-027) |
+| `docs/resultats-des-tests.md` | Tests de bout en bout des trois outils |
 | `config/hermes/appliquer-reglages-hermes.ps1` | Réglages « 100 % local » d'Hermes et liste blanche d'outils |
 | `config/ollama/qwen3.6-35b-64k.Modelfile` | Modèle 64K avec mmap |
 | `config/opencode/opencode.json` | OpenCode limité à Ollama |
