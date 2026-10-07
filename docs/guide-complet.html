@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guide de l'IA locale</title>
 <meta name="description" content="Guide complet pour utiliser Hermes Agent, Morphic et OpenCode avec un modèle Qwen 3.6 local sur Windows 11.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +31,7 @@
   --warn: #e2b04a; --warn-soft: #33290f; --danger: #f2786d; --danger-soft: #3a1b18;
   --code-bg: #1c262f; --code-ink: #dbe4ec; color-scheme: dark; }
 * { box-sizing: border-box; }
+html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font: 17px/1.65 var(--f-body); }
 .page { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 80px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; }
 header.hero { grid-column: 1 / -1; display: grid; gap: 18px; padding-block: 12px 8px; border-bottom: 1px solid var(--line); }
@@ -115,6 +121,8 @@ footer.pied { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-to
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
 
+</head>
+<body>
 <div class="page">
 <header class="hero">
   <div class="eyebrow">Guide complet · version du 7 octobre 2026</div>
@@ -802,3 +810,6 @@ Set-Location C:\Users\ateat\source\outils\morphic; git pull; docker compose pull
   }
 })();
 </script>
+
+</body>
+</html>

@@ -1,5 +1,9 @@
 # IA locale : agents, recherche et code sans cloud
 
+> ## 📘 [Lire le guide complet → GUIDE.md](GUIDE.md)
+> Tout pour utiliser vos IA locales, en 18 chapitres : démarrage, Hermes, Morphic, OpenCode, modèles, confidentialité, mises à jour, sauvegardes, dépannage, aide-mémoire.
+> Version mise en page à ouvrir dans un navigateur : [`docs/guide-complet.html`](docs/guide-complet.html). Téléchargez-la, puis double-cliquez dessus.
+
 Projet séparé de WAVE. Il réunit trois outils open source installés sur un PC Windows 11 (32 Go de mémoire vive, NVIDIA RTX 2000 Ada 8 Go). Ils fonctionnent **sans payer**, et **sans envoyer de données à un fournisseur d'IA** :
 
 | Outil | Rôle | Accès |
@@ -32,7 +36,8 @@ Pour tout arrêter et libérer la mémoire :
 
 | Chemin | Contenu |
 |---|---|
-| `docs/guide-complet.html` | **Guide complet** (18 chapitres) : ouvrir dans un navigateur |
+| `GUIDE.md` | **Guide complet** (18 chapitres), lisible directement sur GitHub |
+| `docs/guide-complet.html` | Même guide mis en page (recherche, boutons « Copier ») : ouvrir dans un navigateur |
 | `docs/guide-utilisation.md` | Version courte : utilisation, mises à jour, ce qui sort du PC, dépannage |
 | `docs/analyse-securite.md` | Analyse des 8 outils proposés au départ et verdicts |
 | `docs/choix-du-modele.md` | Comparaison des modèles locaux et mesures |
